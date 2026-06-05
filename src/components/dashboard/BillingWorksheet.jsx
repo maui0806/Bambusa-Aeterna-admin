@@ -29,7 +29,11 @@ function BillingWorksheetForm({ loading, onDeleteLoading, deleteBusy }) {
   const canBill = loading.status === 'PENDING'
   const canMarkCompleted = loading.status === 'INVOICED' || loading.status === 'TRANSIT'
   const canDelete = loading.status === 'COMPLETED'
-  const portalUrl = resolveTrackingUrl(loading.trackingUrl, loading.id)
+  const portalDispatched =
+    Boolean(loading.trackingUrl) || loading.publicTrackingEnabled === true
+  const portalUrl = portalDispatched
+    ? resolveTrackingUrl(loading.trackingUrl, loading.id)
+    : ''
   const hasInvoice = Boolean(loading.invoiceId)
 
   useEffect(() => {
