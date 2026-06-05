@@ -1,10 +1,26 @@
 import { getBlob, ref } from 'firebase/storage'
 
+import { isFirebaseEmulatorsEnabled } from '@/config/emulatorHost'
 import { storage } from '@/config/firebase'
 
 function pdfBlob(blob) {
   if (!blob || blob.type === 'application/pdf') return blob
   return new Blob([blob], { type: 'application/pdf' })
+}
+
+function isHostedStorageUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  try {
+    const { hostname, protocol } = new URL(url)
+    if (protocol !== 'http:' && protocol !== 'https:') return false
+    return (
+      hostname.includes('firebasestorage.googleapis.com') ||
+      hostname.includes('storage.googleapis.com') ||
+      hostname.includes('googleapis.com')
+    )
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -15,7 +31,13 @@ function pdfBlob(blob) {
 export async function openInvoicePdf(url, storagePath) {
   if (!url && !storagePath) return
 
-  // Must open the tab synchronously on click; async fetch/getBlob runs afterward.
+  // Production Storage URLs work when opened directly (Console / new tab).
+  // Blob fetch + about:blank often yields a blank tab due to CORS / async timing.
+  if (url && isHostedStorageUrl(url) && !isFirebaseEmulatorsEnabled()) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+    return
+  }
+
   const tab = window.open('about:blank', '_blank')
 
   const showInTab = (href) => {
@@ -44,6 +66,11 @@ export async function openInvoicePdf(url, storagePath) {
 
   if (!url) {
     if (tab && !tab.closed) tab.close()
+    return
+  }
+
+  if (/^https?:\/\//i.test(url)) {
+    showInTab(url)
     return
   }
 
