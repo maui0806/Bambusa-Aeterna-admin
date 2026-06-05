@@ -1,5 +1,6 @@
 import { BILLING_SHIPMENT_LABELS, BILLING_SHIPMENT_STYLES } from '@/constants/billing'
 import { formatBillingDateTime, formatLoadingDateTime } from '@/services/invoicesService'
+import { resolveTrackingUrl } from '@/utils/customerPortalUrl'
 import { openInvoicePdf } from '@/utils/openInvoicePdf'
 
 function PdfIcon() {
@@ -86,11 +87,9 @@ export function InvoiceRecordsTable({ invoices, vehicleNumber, embedded = false 
               const statusLabel =
                 BILLING_SHIPMENT_LABELS[inv.shipmentStatus] || inv.shipmentStatus
               const hasPdf = Boolean(inv.invoicePdfUrl || inv.invoicePdfPath)
-              const portalUrl =
-                inv.trackingUrl ||
-                (inv.loadingDocId && !inv.loadingArchived
-                  ? `${window.location.origin}/track/${inv.loadingDocId}`
-                  : '')
+              const portalUrl = resolveTrackingUrl(inv.trackingUrl, inv.loadingDocId, {
+                loadingArchived: inv.loadingArchived,
+              })
 
               return (
                 <tr key={inv.id} className="border-t border-slate-100 hover:bg-slate-50/80">

@@ -12,6 +12,7 @@ import {
 } from '@/services/loadingsService'
 import { dispatchViaWhatsApp, generateInvoicePdf } from '@/services/invoiceService'
 import { getCallableErrorMessage } from '@/utils/callableError'
+import { resolveTrackingUrl } from '@/utils/customerPortalUrl'
 import { openInvoicePdf } from '@/utils/openInvoicePdf'
 import { normalizePhone, phonesMatch } from '@/utils/phone'
 
@@ -28,6 +29,7 @@ function BillingWorksheetForm({ loading, onDeleteLoading, deleteBusy }) {
   const canBill = loading.status === 'PENDING'
   const canMarkCompleted = loading.status === 'INVOICED' || loading.status === 'TRANSIT'
   const canDelete = loading.status === 'COMPLETED'
+  const portalUrl = resolveTrackingUrl(loading.trackingUrl, loading.id)
   const hasInvoice = Boolean(loading.invoiceId)
 
   useEffect(() => {
@@ -336,9 +338,9 @@ function BillingWorksheetForm({ loading, onDeleteLoading, deleteBusy }) {
           </button>
         ) : null}
 
-        {loading.trackingUrl ? (
+        {portalUrl ? (
           <a
-            href={loading.trackingUrl}
+            href={portalUrl}
             target="_blank"
             rel="noreferrer"
             className="block text-center text-xs text-slate-500 hover:underline"
